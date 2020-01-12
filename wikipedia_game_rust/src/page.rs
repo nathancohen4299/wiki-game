@@ -16,21 +16,21 @@ static BASE: &'static str = "https://en.wikipedia.org";
 #[derive(Hash, Debug)]
 pub struct Page {
     pub path: String,
-//    pub links: Vec<String>,
 }
 
 impl Page {
     pub fn new(path: &str) -> Page {
         Page {
             path: String::from(path),
-            //            links: vec!(),
         }
     }
+
     pub fn calculate_hash(&self) -> u64 {
         let mut s = DefaultHasher::new();
         self.hash(&mut s);
         s.finish()
     }
+
     pub fn get_urls(&self) -> Vec<String> {
         let mut easy = Easy2::new(Collector(Vec::new()));
         easy.get(true).unwrap();
@@ -63,5 +63,4 @@ impl Page {
         }
         urls
     }
-
 }
