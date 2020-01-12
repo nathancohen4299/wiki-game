@@ -17,7 +17,7 @@ fn main() {
 #[derive(Clone, Eq, PartialEq)]
 struct State {
     cost: u32,
-    id: String,
+    id: u64,
 }
 
 impl Ord for State {
@@ -28,48 +28,55 @@ impl Ord for State {
             .then_with(|| self.id.cmp(&other.id))
     }
 }
-impl PartialOrd for State{
+impl PartialOrd for State {
     fn partial_cmp(&self, other: &State) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
 fn calculate_shortest_path(source: &'static str, destination: &'static str) -> Option<u32> {
-    let mut dist: HashMap<String, u32> = HashMap::new();
-    let mut pages: HashMap<&str, Page> = HashMap::new();
+    let mut dist: HashMap<u64, u32> = HashMap::new();
+    let mut pages: HashMap<u64, Page> = HashMap::new();
     let mut min_heap = BinaryHeap::new();
-    dist.insert(String::from(source), 0);
+    let source_page = Page::new(source);
+    dist.insert(source_page.calculate_hash(), 0);
     min_heap.push(State {
-        id: source.to_string(),
+        id: source_page.calculate_hash(),
         cost: 0,
     });
+    pages.insert(source_page.calculate_hash(), source_page);
 
     while let Some(State { id, cost }) = min_heap.pop() {
-        if id == destination {
+        if pages.get(&id).unwrap().path.as_str() == destination {
             return Some(cost);
         }
 
-        if let Some(distance) = dist.get(id) {
+        if let Some(distance) = dist.get(&id) {
             if cost > *distance {
                 continue;
             }
         }
-        let current_page: Page = Page::new(id);
-        pages.insert(id, current_page);
-        for s in pages.get(id).unwrap().links {
-            let next = State {
-                id: s.clone(),
-                cost: cost + 1,
-            };
-            if dist.contains_key(s.as_str()) {
-                let next_distance = *dist.get(s.as_str()).unwrap();
-                if next.cost < next_distance {
-                    *dist.get_mut(next.id.as_str()).unwrap() = next.cost.clone();
+        println!("Current Page: id = {}, cost = {}, path = {}", id, cost, pages.get(&id).unwrap().path);
+        if pages.get(&id).is_some() {
+            for s in pages.get(&id).unwrap().links.clone() {
+                println!("Looking at {}", s);
+                let connecting_page = Page::new(s.clone().as_str());
+                let next = State {
+                    id: connecting_page.calculate_hash(),
+                    cost: cost + 1,
+                };
+                pages.insert(connecting_page.calculate_hash(), connecting_page);
+
+                if dist.contains_key(&next.id) {
+                    let next_distance = *dist.get(&next.id).unwrap();
+                    if next.cost < next_distance {
+                        *dist.get_mut(&next.id).unwrap() = next.cost.clone();
+                        min_heap.push(next);
+                    }
+                } else {
+                    dist.insert(next.id, next.cost.clone());
                     min_heap.push(next);
                 }
-            } else {
-                dist.insert(next.id.to_string(), next.cost.clone());
-                min_heap.push(next);
             }
         }
     }
