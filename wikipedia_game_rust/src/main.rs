@@ -56,9 +56,15 @@ fn calculate_shortest_path(source: &'static str, destination: &'static str) -> O
                 continue;
             }
         }
-        println!("Current Page: id = {}, cost = {}, path = {}", id, cost, pages.get(&id).unwrap().path);
+        println!(
+            "Current Page: id = {}, cost = {}, path = {}",
+            id,
+            cost,
+            pages.get(&id).unwrap().path
+        );
         if pages.get(&id).is_some() {
-            for s in pages.get(&id).unwrap().links.clone() {
+            let links = pages.get(&id).unwrap().get_urls();
+            for s in links {
                 println!("Looking at {}", s);
                 let connecting_page = Page::new(s.clone().as_str());
                 let next = State {
