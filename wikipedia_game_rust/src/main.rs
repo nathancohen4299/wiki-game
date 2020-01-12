@@ -1,5 +1,4 @@
 use crate::page::Page;
-use std::cmp::min;
 use std::cmp::Ordering;
 use std::collections::{BinaryHeap, HashMap};
 
@@ -15,13 +14,13 @@ fn main() {
     }
 }
 
-#[derive(Copy, Clone, Eq, PartialEq)]
-struct State<'a> {
+#[derive(Clone, Eq, PartialEq)]
+struct State {
     cost: u32,
-    id: &'a str,
+    id: String,
 }
 
-impl<'a> Ord for State<'a> {
+impl Ord for State {
     fn cmp(&self, other: &State) -> Ordering {
         other
             .cost
@@ -29,18 +28,19 @@ impl<'a> Ord for State<'a> {
             .then_with(|| self.id.cmp(&other.id))
     }
 }
-impl<'a> PartialOrd for State<'a> {
+impl PartialOrd for State{
     fn partial_cmp(&self, other: &State) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
 fn calculate_shortest_path(source: &'static str, destination: &'static str) -> Option<u32> {
-    let mut dist: HashMap<&str, u32> = HashMap::new();
+    let mut dist: HashMap<String, u32> = HashMap::new();
+    let mut pages: HashMap<&str, Page> = HashMap::new();
     let mut min_heap = BinaryHeap::new();
-    dist.insert(source, 0);
+    dist.insert(String::from(source), 0);
     min_heap.push(State {
-        id: source,
+        id: source.to_string(),
         cost: 0,
     });
 
@@ -52,22 +52,23 @@ fn calculate_shortest_path(source: &'static str, destination: &'static str) -> O
         if let Some(distance) = dist.get(id) {
             if cost > *distance {
                 continue;
-            }g
+            }
         }
-        let current_page: Page = Page::new(source);
-        for s in current_page.links {
+        let current_page: Page = Page::new(id);
+        pages.insert(id, current_page);
+        for s in pages.get(id).unwrap().links {
             let next = State {
-                id: s.clone().as_str(),
+                id: s.clone(),
                 cost: cost + 1,
             };
             if dist.contains_key(s.as_str()) {
                 let next_distance = *dist.get(s.as_str()).unwrap();
                 if next.cost < next_distance {
-                    *dist.get_mut(next.id).unwrap() = next.cost.clone();
+                    *dist.get_mut(next.id.as_str()).unwrap() = next.cost.clone();
                     min_heap.push(next);
                 }
             } else {
-                dist.insert(next.id, next.cost.clone());
+                dist.insert(next.id.to_string(), next.cost.clone());
                 min_heap.push(next);
             }
         }

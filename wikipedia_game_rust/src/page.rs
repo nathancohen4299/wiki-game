@@ -37,7 +37,7 @@ fn get_urls(url: &str) -> Vec<String> {
     let div_selector = Selector::parse("div").unwrap();
     let a_selector = Selector::parse("a").unwrap();
 
-    let mut urls: Vec<String> = Vec::new();
+    let mut urls = Vec::new();
 
     for div in fragment.select(&div_selector) {
         let id = div.value().attr("id").unwrap_or("");
@@ -47,7 +47,7 @@ fn get_urls(url: &str) -> Vec<String> {
                 let path = element.value().attr("href").unwrap();
                 if path.chars().next().unwrap() != '#' && path.len() >= 6 && &path[..6] == "/wiki/"
                 {
-                    urls.push(format!("{}", path));
+                    urls.push(String::from(path));
                 }
             }
         }
