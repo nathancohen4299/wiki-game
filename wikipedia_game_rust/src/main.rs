@@ -37,7 +37,9 @@ impl PartialOrd for State {
 fn calculate_shortest_path(source: &'static str, destination: &'static str) -> Option<u32> {
     let mut dist: HashMap<u64, u32> = HashMap::new();
     let mut pages: HashMap<u64, Page> = HashMap::new();
+    let mut edges: HashMap<String, String> = HashMap::new();
     let mut min_heap = BinaryHeap::new();
+
     let source_page = Page::new(source);
     dist.insert(source_page.calculate_hash(), 0);
     min_heap.push(State {
@@ -48,6 +50,15 @@ fn calculate_shortest_path(source: &'static str, destination: &'static str) -> O
 
     while let Some(State { id, cost }) = min_heap.pop() {
         if pages.get(&id).unwrap().path.as_str() == destination {
+            println!("{:40} | {:40}", "KEY", "VALUE");
+            for _ in 0..80{
+                print!("=");
+            }
+            println!();
+            for (key, value) in edges{
+                println!("{:40} | {:40}", key, value);
+            }
+            //TODO Reconstruct Edges by iterating backwards starting with destination
             return Some(cost);
         }
 
@@ -56,16 +67,11 @@ fn calculate_shortest_path(source: &'static str, destination: &'static str) -> O
                 continue;
             }
         }
-        println!(
-            "Current Page: id = {}, cost = {}, path = {}",
-            id,
-            cost,
-            pages.get(&id).unwrap().path
-        );
+
         if pages.get(&id).is_some() {
             let links = pages.get(&id).unwrap().get_urls();
             for s in links {
-                println!("Looking at {}", s);
+
                 let connecting_page = Page::new(s.clone().as_str());
                 let next = State {
                     id: connecting_page.calculate_hash(),
@@ -77,10 +83,13 @@ fn calculate_shortest_path(source: &'static str, destination: &'static str) -> O
                     let next_distance = *dist.get(&next.id).unwrap();
                     if next.cost < next_distance {
                         *dist.get_mut(&next.id).unwrap() = next.cost.clone();
+                        //set edge
+                        *edges.get_mut(pages.get(&next.id).unwrap().path.clone().as_str()).unwrap() = pages.get(&id).unwrap().path.clone();
                         min_heap.push(next);
                     }
                 } else {
                     dist.insert(next.id, next.cost.clone());
+                    edges.insert(pages.get(&next.id).unwrap().path.clone(), pages.get(&id).unwrap().path.clone());
                     min_heap.push(next);
                 }
             }
