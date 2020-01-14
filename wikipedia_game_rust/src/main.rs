@@ -8,7 +8,7 @@ fn main() {
     let source = "/wiki/Pulp_Fiction";
     let dest = "/wiki/Evil_Dead_II";
     if let Some(order) = calculate_shortest_path(source, dest) {
-        println!("Path:");
+        println!("Shortest Path:");
         for x in order {
             println!("{}", x);
         }
