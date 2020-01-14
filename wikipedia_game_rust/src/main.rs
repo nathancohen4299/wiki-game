@@ -6,9 +6,12 @@ mod page;
 
 fn main() {
     let source = "/wiki/Make_Your_Wish";
-    let dest = "/wiki/Oh_Ji-eun";
-    if let Some(value) = calculate_shortest_path(source, dest) {
-        println!("Shortest Path of Cost {}", value);
+    let dest = "/wiki/K-pop";
+    if let Some(order) = calculate_shortest_path(source, dest) {
+        println!("Path:");
+        for x in order {
+            println!("{}", x);
+        }
     } else {
         println!("Error: Shortest Path Not Found");
     }
@@ -34,7 +37,10 @@ impl PartialOrd for State {
     }
 }
 
-fn calculate_shortest_path(source: &'static str, destination: &'static str) -> Option<u32> {
+fn calculate_shortest_path(
+    source: &'static str,
+    destination: &'static str,
+) -> Option<Vec<Box<String>>> {
     let mut dist: HashMap<u64, u32> = HashMap::new();
     let mut pages: HashMap<u64, Page> = HashMap::new();
     let mut edges: HashMap<String, String> = HashMap::new();
@@ -50,16 +56,11 @@ fn calculate_shortest_path(source: &'static str, destination: &'static str) -> O
 
     while let Some(State { id, cost }) = min_heap.pop() {
         if pages.get(&id).unwrap().path.as_str() == destination {
-            println!("{:40} | {:40}", "KEY", "VALUE");
-            for _ in 0..80{
-                print!("=");
-            }
-            println!();
-            for (key, value) in edges{
-                println!("{:40} | {:40}", key, value);
-            }
-            //TODO Reconstruct Edges by iterating backwards starting with destination
-            return Some(cost);
+            return Some(build_path(source, destination, &edges));
+        }
+
+        if let Some(x) = pages.get(&id) {
+            println!("Scraping {}", x.path);
         }
 
         if let Some(distance) = dist.get(&id) {
@@ -71,7 +72,6 @@ fn calculate_shortest_path(source: &'static str, destination: &'static str) -> O
         if pages.get(&id).is_some() {
             let links = pages.get(&id).unwrap().get_urls();
             for s in links {
-
                 let connecting_page = Page::new(s.clone().as_str());
                 let next = State {
                     id: connecting_page.calculate_hash(),
@@ -84,16 +84,39 @@ fn calculate_shortest_path(source: &'static str, destination: &'static str) -> O
                     if next.cost < next_distance {
                         *dist.get_mut(&next.id).unwrap() = next.cost.clone();
                         //set edge
-                        *edges.get_mut(pages.get(&next.id).unwrap().path.clone().as_str()).unwrap() = pages.get(&id).unwrap().path.clone();
+                        *edges
+                            .get_mut(pages.get(&next.id).unwrap().path.clone().as_str())
+                            .unwrap() = pages.get(&id).unwrap().path.clone();
                         min_heap.push(next);
                     }
                 } else {
                     dist.insert(next.id, next.cost.clone());
-                    edges.insert(pages.get(&next.id).unwrap().path.clone(), pages.get(&id).unwrap().path.clone());
+                    edges.insert(
+                        pages.get(&next.id).unwrap().path.clone(),
+                        pages.get(&id).unwrap().path.clone(),
+                    );
                     min_heap.push(next);
                 }
             }
         }
     }
     None
+}
+
+fn build_path(
+    source: &str,
+    destination: &str,
+    edges: &HashMap<String, String>,
+) -> Vec<Box<String>> {
+    let mut order: Vec<Box<String>> = Vec::new();
+    order.push(Box::new(destination.to_string()));
+    while edges.contains_key(order[order.len()-1].as_str()) {
+        let next = edges.get(order[order.len() - 1].as_str()).unwrap().clone();
+        order.push(Box::new(next));
+        if order[order.len() - 1].as_str() == source {
+            order.reverse();
+            return order;
+        }
+    }
+    order
 }
