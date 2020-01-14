@@ -5,8 +5,8 @@ use std::collections::{BinaryHeap, HashMap};
 mod page;
 
 fn main() {
-    let source = "/wiki/Make_Your_Wish";
-    let dest = "/wiki/K-pop";
+    let source = "/wiki/Pulp_Fiction";
+    let dest = "/wiki/Neo-noir";
     if let Some(order) = calculate_shortest_path(source, dest) {
         println!("Path:");
         for x in order {
