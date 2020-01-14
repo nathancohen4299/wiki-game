@@ -6,7 +6,7 @@ mod page;
 
 fn main() {
     let source = "/wiki/Pulp_Fiction";
-    let dest = "/wiki/Neo-noir";
+    let dest = "/wiki/Evil_Dead_II";
     if let Some(order) = calculate_shortest_path(source, dest) {
         println!("Path:");
         for x in order {
@@ -45,7 +45,7 @@ fn calculate_shortest_path(
     let mut pages: HashMap<u64, Page> = HashMap::new();
     let mut edges: HashMap<String, String> = HashMap::new();
     let mut min_heap = BinaryHeap::new();
-
+    let mut count = 1;
     let source_page = Page::new(source);
     dist.insert(source_page.calculate_hash(), 0);
     min_heap.push(State {
@@ -60,7 +60,8 @@ fn calculate_shortest_path(
         }
 
         if let Some(x) = pages.get(&id) {
-            println!("Scraping {}", x.path);
+            println!("{}: Scraping {}", count, x.path);
+            count += 1;
         }
 
         if let Some(distance) = dist.get(&id) {
